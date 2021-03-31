@@ -355,7 +355,7 @@
 
 <script>
     // 每天切换 banner 图.  Switch banner image every day.
-    var bannerUrl = "/medias/banner/" + new Date().getMinutes()%6 + '.jpg';
+    var bannerUrl = "/medias/banner/" + new Date().getMinutes()%7 + '.jpg';
     $('.bg-cover').css('background-image', 'url(' + bannerUrl + ')');
 </script>
 
@@ -884,7 +884,7 @@
     
     <div class="row">
         <meting-js class="col l8 offset-l2 m10 offset-m1 s12"
-                   server=""
+                   server="netease"
                    type="playlist"
                    id="503838841"
                    fixed='true'
