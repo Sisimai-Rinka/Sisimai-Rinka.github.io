@@ -4,13 +4,27 @@
   
     
     <entry>
-      <title>Hello World</title>
-      <link href="2021/03/30/hello-world/"/>
-      <url>2021/03/30/hello-world/</url>
+      <title>C++ cin使用总结（更新中）</title>
+      <link href="2021/04/21/c-cin/"/>
+      <url>2021/04/21/c-cin/</url>
       
-        <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p><h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><pre class=" language-bash"><code class="language-bash">$ hexo new <span class="token string">"My New Post"</span></code></pre><p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p><h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><pre class=" language-bash"><code class="language-bash">$ hexo server</code></pre><p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p><h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><pre class=" language-bash"><code class="language-bash">$ hexo generate</code></pre><p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p><h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><pre class=" language-bash"><code class="language-bash">$ hexo deploy</code></pre><p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>]]></content>
+        <content type="html"><![CDATA[<h1 id="C-cin使用总结（更新中）"><a href="#C-cin使用总结（更新中）" class="headerlink" title="C++ cin使用总结（更新中）"></a>C++ cin使用总结（更新中）</h1><h2 id="cin"><a href="#cin" class="headerlink" title="cin"></a>cin</h2><p>cin是istream类的对象，主要用于从标准输入读取数据。</p><h4 id="1-cin会忽略空格和换行符"><a href="#1-cin会忽略空格和换行符" class="headerlink" title="1. cin会忽略空格和换行符"></a>1. cin会忽略空格和换行符</h4><pre class=" language-c++"><code class="language-c++">/*变量定义*/char ch;             int count = 0;             //计入输出的字符</code></pre><ul><li> 采用自定义结束符来结束输入</li></ul><pre class=" language-c++"><code class="language-c++">cin >> ch;while(ch != '#'){   cout << ch;   cin >> ch;   count++;}cout << endl << ch << endl << count;</code></pre><p>输出结果：</p><pre class=" language-C++"><code class="language-C++">abcd abc#asdas   //输入abcdabc7            //count输出</code></pre><p>在while循环内，输出了abcdabc, cin将输入的空格忽略了，从count的输出中也能看出。输入的字符串在被cin处理前是处于缓冲状态（按下enter前都没有发送给cin处理），所以#后能输入字符串，而程序没有在用户输入#时就结束运行。</p><ul><li> 采用EOF来结束输入</li></ul><p>EOF是文件尾条件标记。当检测到EOF后，cin将cin.eofbit和cin.failbit都设置为1，此时调用cin.fail()时会返回true，反之返回false。</p><p>Windows系统上模拟文件尾是使用CTRL+Z。</p><pre class=" language-c++"><code class="language-c++">while (cin >> ch){   cout << ch;       //输出输入的字符   //cout << " " << (int)ch << endl;   count++;            //字符输出计数   }cout  << count << endl;</code></pre><p>输入:</p><pre class=" language-C++"><code class="language-C++">/** ^Z是按下CTRL+Z的EOF文件尾标记**/*第一种输入 abcd^Z + [enter] + ^Z + [enter] abcd^Zabcd^Z5*第二种输入 abcd^Zabcd + [enter] + ^Z + [enter] abcd^Zabcdabcd  ^Z5*第三种输入 abcd^Zabcd + [enter] + ^Z + [enter] abcdabcd^Z4</code></pre><p>此处有以下问题：</p><ol><li>cin &gt;&gt; ch的返回是什么？</li><li>为什么^Z【CTRL+Z】没有标记着输入的结束？而【enter】 + ^Z + 【enter】才标记着输入结束？</li><li>为什么第一和第二种输入都是输出了5个字符？第5个字符去哪了？</li></ol><p>第一个问题：</p><p>​    cin是Istream的对象，本身不返回值。而是 ‘ &gt;&gt; ‘重载函数 istream&amp; operator&gt;&gt;(istream&amp;, T &amp;)的返回值，第一个参数是输入流cin对象，第二个参数是&gt;&gt;后的输入的类型决定，此函数返回值是istream&amp;类型，为cin本身。返回的cin当遇到EOF时返回0，其他时候不为0。</p><p>第二个问题：</p><p>​    输入缓冲是行缓冲，当按下【enter】才标志着缓冲中的数据发送给程序处理。</p><p>​    此时检查EOF的方式有两种为阻塞式和非阻塞式。阻塞式在按下【enter】后才检查是否有EOF的存在；非阻塞式在按下【CRTL+D】（一个标记键）后，若之前已经输入了数据，【CTRL+D】将作为【enter】将数据发送处理，此时【CRTL+D】不再作为流结束标记，若没有数据，则【CRTL+D】作为流的结束标志。</p><p>​    Windows下采用阻塞式，当输入abcd^Z + 【enter】，因为在【enter】前不检查EOF的存在，所以abcd^Z都会发送给程序进行处理，而Windows在输入缓冲区中有数据时不检测^Z。所以，即使按下了【CRTL+Z】，但是因为有数据可以读取，所以没有去检查EOF，因此输入流没有关闭。在回车后，缓冲区没有了数据，此时再按下【CRTL+Z】+ 【enter】，Windows便会检测EOF的存在，关闭输入流。</p><p>第三个问题：</p><p>​    将上述注释的代码恢复，运行如下</p><pre class=" language-C++"><code class="language-C++">abcd^Z  //输入a 97b 98c 99d 100 26^Z5</code></pre><p>调试可见^Z被转化读取为  ‘\032’ 而没有作为EOF结束符号，所以此时为第5个字符输出。但因为ASCII中十进制26对应的字符是不可显示字符，所以只有其转化为整型的输出。</p><p><img src="/medias/DMimage/image-20210421223005286.png" alt="image-20210421223005286"></p>]]></content>
       
       
+      <categories>
+          
+          <category> Markdown </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> C++ </tag>
+            
+            <tag> cin </tag>
+            
+        </tags>
       
     </entry>
     
